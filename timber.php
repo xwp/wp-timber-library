@@ -3,7 +3,7 @@
 Plugin Name: TimberFramework
 Description: The WordPress Timber Framework allows you to write themes using the power of MVT and Twig
 Author: Jared Novack + Upstatement
-Version: 0.8.1
+Version: 0.10.0
 Author URI: http://timber.upstatement.com/
 */
 
