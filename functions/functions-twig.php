@@ -12,6 +12,8 @@
 			$twig->addFilter('excerpt', new Twig_Filter_Function('twig_make_excerpt'));
 			$twig->addFilter('print_r', new Twig_Filter_Function('twig_print_r'));
 			$twig->addFilter('print_a', new Twig_Filter_Function('twig_print_a'));
+			$twig->addFilter('docs', new Twig_Filter_function('twig_object_docs'));
+
 			$twig->addFilter('get_src_from_attachment_id', new Twig_Filter_Function('twig_get_src_from_attachment_id'));
 			$twig->addFilter('path', new Twig_Filter_Function('twig_get_path'));
 			$twig->addFilter('tojpg', new Twig_Filter_Function('twig_img_to_jpg'));
@@ -358,14 +360,6 @@
 		return $src;
 	}
 
-	function twig_print_r($arr){
-		return print_r($arr, true);
-	}
-
-	function twig_print_a($arr){
-		return '<pre>'.print_r($arr, true).'</pre>';
-	}
-
 	function twig_get_path($url){
 		$url = parse_url($url);
 		return $url['path'];
@@ -373,6 +367,75 @@
 
 	function twig_make_excerpt($text, $length = 55){
 		return wp_trim_words($text, $length);
+	}
+
+	function twig_invoke($method, $obj){
+		$product = '';
+		$totalParams = $method->getNumberOfParameters();
+		$reqParams = $method->getNumberOfRequiredParameters();
+		if (!$method->getNumberOfParameters()){
+			//zero parameters, easy street
+			$product = $method->invoke($obj);
+			//$product = $method->getName();
+		} else if ($method->getNumberOfRequiredParameters()){
+			//there are required parametres
+			//$product = $method->getName();
+		} else if ($totalParams && !$reqParams) {
+			//all params are optional
+			$pass = array(); 
+			$product = $pass;
+			if ($method->getName() == 'get_preview'){
+				$function = $method->getName();
+				// try {
+				// 	$product = $obj->$function();
+				// } catch($e){
+				// 	$product = 'error with '.$method->getName();
+				// }
+			}
+			
+			//$product = $method->invokeArgs($obj, $pass);
+			//$product = $args;
+		} else {
+			$product = '?????';
+		}
+		return $product;
+	}
+
+	function twig_print_r($arr){
+		return print_r($arr, true);
+	}
+
+	function twig_print_a($arr){
+		return '<pre>'.twig_object_docs($arr, true).'</pre>';
+	}
+
+	function twig_object_docs($obj){
+		$reflector = new ReflectionClass($obj);
+		$methods = $reflector->getMethods();
+		$rets = array();
+		$rep = $reflector->getProperty('representation')->getValue();
+		foreach($methods as $method){
+			if ($method->isPublic()){
+				$comments = $method->getDocComment();
+				$comments = str_replace('/**', '', $comments);
+				//$comments = preg_replace('(\/)(\*)(\*)\r', '', $comments);
+				$info = new stdClass();
+				$info->comments = $comments;
+				$info->returns = twig_invoke($method, $obj);
+				$info->params = $method->getParameters();
+				//if (strlen($comments) && !strstr($comments, '@nodoc')){
+					//$rets[$rep.'.'.$method->name] = $comments;
+					//$rets[$rep.'.'.$method->name] = $info->returns;
+					$rets[$method->name] = $info->returns;
+				//}
+			}
+		}
+		foreach($obj as $key=>$value){
+			$rets[$key] = $value;
+		}
+		ksort($rets);
+
+		return '<pre>'.(print_r($rets, true)).'</pre>';
 	}
 
 	function twig_img_to_jpg($src){
@@ -390,8 +453,4 @@
     	imagejpeg($bg, '/'.$_SERVER['DOCUMENT_ROOT'].$output, 90);
     	imagedestroy($image);
     	return $output;
-	}
-	
-	function twig_resize_image($src, $w, $h = 0, $ratio = 0, $append = ''){
-		//return InkwellImage::get_photon($src, $w, $h, $ratio, $append);
 	}

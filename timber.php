@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: TimberFramework
-Description: The WordPress Timber Framework allows you to write themes using the power of MVT and Twig
+Plugin Name: Timber
+Description: The WordPress Timber Library allows you to write themes using the power Twig templates
 Author: Jared Novack + Upstatement
-Version: 0.10.0
+Version: 0.10.1
 Author URI: http://timber.upstatement.com/
 */
 
@@ -28,27 +28,19 @@ require_once(__DIR__.'/objects/timber-image.php');
 require_once(__DIR__.'/objects/timber-menu.php');
 
 require_once(__DIR__.'/objects/timber-loader.php');
-
-$timber_loc = str_replace(realpath($_SERVER['DOCUMENT_ROOT']), '', realpath(__DIR__));
-define("TIMBER", $timber_loc);
-define("TIMBER_URL", 'http://'.$_SERVER["HTTP_HOST"].TIMBER);
-define("TIMBER_LOC", realpath(__DIR__));
+//require_once(__DIR__.'/admin/timber-admin.php');
 
 
-/*
-
-	Usage:
-
-		$posts = Timber::get_posts();
-		$posts = Timber::get_posts('post_type = article')
-		$posts = Timber::get_posts(array('post_type' => 'article', 'category_name' => 'sports')); // uses wp_query format
-		$posts = Timber::get_posts(array(23,24,35,67), 'InkwellArticle');
-
-		$context = Timber::get_context(); // returns wp favorites!
-
-		Timber::render('index.twig', $context);
-
-
+/** Usage:
+*
+*	$posts = Timber::get_posts();
+*	$posts = Timber::get_posts('post_type = article')
+*	$posts = Timber::get_posts(array('post_type' => 'article', 'category_name' => 'sports')); // uses wp_query format
+*	$posts = Timber::get_posts(array(23,24,35,67), 'InkwellArticle');
+*
+*	$context = Timber::get_context(); // returns wp favorites!
+*
+*	Timber::render('index.twig', $context);
 */
 	
 class Timber {
@@ -60,6 +52,7 @@ class Timber {
 	var $router;
 
 	function __construct(){
+		$this->init_constants();
 		$timber_twig = new TimberTwig();
 		add_action('init', array(&$this, 'init_routes'));
 	}
@@ -322,6 +315,9 @@ class Timber {
 		$data['wp_head'] = self::get_wp_head();
 		$data['wp_footer'] = self::get_wp_footer();
 		$data['body_class'] = implode(' ', get_body_class());
+		$context['bloginfo'] = array();
+		$context['bloginfo']['name'] = get_bloginfo('name');
+		$context['bloginfo']['description'] = get_bloginfo('description');
 		if (function_exists('wp_nav_menu')){
 			$data['wp_nav_menu'] = wp_nav_menu( array( 'container_class' => 'menu-header', 'theme_location' => 'primary' , 'echo' => false) );
 		}
@@ -341,6 +337,23 @@ class Timber {
 			}
 		}
 		return false;
+	}
+
+	function init_constants(){
+		$timber_loc = str_replace(realpath($_SERVER['DOCUMENT_ROOT']), '', realpath(__DIR__));
+		$plugin_url_path = str_replace($_SERVER['HTTP_HOST'], '', plugins_url());
+		$plugin_url_path = str_replace('https://', '', $plugin_url_path);
+		$plugin_url_path = str_replace('http://', '', $plugin_url_path);
+		
+		$timber_dirs = dirname(__FILE__);
+		$timber_dirs = explode('/', $timber_dirs);
+		$timber_dirname = array_pop($timber_dirs);
+
+		define("TIMBER", $timber_loc);
+		define("TIMBER_URL_PATH", trailingslashit($plugin_url_path).trailingslashit($timber_dirname));
+
+		define("TIMBER_URL", 'http://'.$_SERVER["HTTP_HOST"].TIMBER);
+		define("TIMBER_LOC", realpath(__DIR__));
 	}
 
 	/* Routes 				*/
@@ -370,14 +383,23 @@ class Timber {
 	}
 
 	function load_template($template, $query = false){
-		header('HTTP/1.1 200 OK');
 		if ($query){
 			global $wp_query;
 			$wp_query = new WP_Query($query);
 		}
-		load_template(locate_template($template));
-		die;
+		$template = locate_template($template);
+		$GLOBALS['timber_template'] = $template;
+		add_action('send_headers', function(){
+			header('HTTP/1.1 200 OK');
+		});
+		add_action('wp_loaded', function($template){
+			if (isset($GLOBALS['timber_template'])){
+				load_template($GLOBALS['timber_template']);
+				die;
+			}
+		}, 10, 1);
 	}
+
 
 	// TODO: move into wp shortcut function
 	function get_wp_footer(){
@@ -399,3 +421,4 @@ class Timber {
 }
 
 $timber = new Timber();
+$GLOBALS['timber'] = $timber;
