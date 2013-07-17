@@ -1,12 +1,10 @@
 <?php
-	/** 
-	* TimberPost is yr friend
-	*/
+	
 	class TimberPost extends TimberCore {
 
 		var $ImageClass = 'TimberImage';
 		var $PostClass = 'TimberPost';
-		var $_can_edit;
+		var $_can_edit; 
 
 		public static $representation = 'post';
 
@@ -37,6 +35,9 @@
 			$this->import_info($pid);
 		}
 
+		/**
+		*	Get the URL that will edit the current post/object
+		*/
  		function get_edit_url(){
  			if ($this->can_edit()){
  				return '/wp-admin/post.php?post='.$this->ID.'&action=edit';
@@ -418,6 +419,10 @@
 			return $this->get_children();
 		}
 
+		function content(){
+			return $this->get_content();
+		}
+
 		function link(){
 			return $this->get_link();
 		}
@@ -432,6 +437,10 @@
 
 		function tags(){
 			return $this->get_tags();
+		}
+
+		function thumbnail(){
+			return $this->get_thumbnail();
 		}
 
 		function title(){
