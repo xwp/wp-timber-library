@@ -2,7 +2,7 @@
 Contributors: jarednova
 Tags: template engine, templates, twig
 Requires at least: 3.5
-Stable tag: trunk
+Stable tag: 0.10.2
 Tested up to: 3.5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -27,7 +27,7 @@ Nothing. Timber is meant for you to build a theme on. Like the [Starkers](https:
 #### Who is it good for?
 Timber is great for any WordPress developer who cares about writing good, maintainable code. It helps teams of designers and developers working together. At [Upstatement](http://upstatement.com) we made Timber because not everyone knows the ins-and-outs of the_loop(), WordPress codex and PHP (nor should they). With Timber your best WordPress dev can focus on building the .php files with requests from WordPress and pass the data into .twig files. Once there, designers can easily mark-up data and build out a site's look-and-feel.
 
-== Installation ==
+
 
 == Changelog ==
 
@@ -42,9 +42,8 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 * print_a now includes the output of (most) methods in addition to properites.
 * added lots of aliases so that things like .author will work the same as .get_author
 
-This section describes how to install the plugin and get it working.
 
-e.g.
+== Installation ==
 
 1. Activate the plugin through the 'Plugins' menu in WordPress
 2. For an example, try modifying your home.php or index.php with something like this:
@@ -71,3 +70,6 @@ That's Timber!
 = Can it be used in an existing theme? =
 
 You bet! Watch these **[video tutorials](https://github.com/jarednova/timber/wiki/Video-Tutorials)** to see how.
+
+= Support? =
+Leave a [GitHub issue](https://github.com/jarednova/timber/issues?state=open) and I'll holler back.
