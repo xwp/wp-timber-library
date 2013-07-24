@@ -2,12 +2,12 @@
 Contributors: jarednova
 Tags: template engine, templates, twig
 Requires at least: 3.5
-Stable tag: 0.10.2
-Tested up to: 3.5.2
+Stable tag: 0.10.3
+Tested up to: 3.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Helps you create themes faster with more sustainable code. With Timber, you write your HTML using Twig Templates separate from PHP. Check out the full [Project Page](http://timber.upstatement.com) for more info.
+Helps you create themes faster with more sustainable code. With Timber, you write your HTML using Twig Templates separate from PHP. Check out http://timber.upstatement.com for more info<a href="#">.</a>
 
 == Description ==
 Timber cleans-up your theme code so, for example, your php file can focus on being the data, while your twig/html file can focus 100% on the HTML and display.
@@ -17,7 +17,8 @@ Once Timber is installed and activated in your plugin directory, it gives any Wo
 ### Looking for docs?
 * **[Project Page](http://timber.upstatement.com)**
 * [Timber Documentation](https://github.com/jarednova/timber/wiki/)
-* [Twig Reference](http://twig.sensiolabs.org/documentation)
+* [Twig Reference (from SensioLabs)](http://twig.sensiolabs.org/documentation)
+_Twig is the template language powering Timber; if you need a little background on what a template language is, check out this article_
 * **[Video Tutorials](https://github.com/jarednova/timber/wiki/Video-Tutorials)**
 * [Overview / Getting Started Guide](https://github.com/jarednova/timber/wiki/getting-started)
 
@@ -30,6 +31,11 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 
 == Changelog ==
+
+= 0.10.3 =
+* Corrected error with sidebar retrieval
+* language_attributes are now avaiable as part of Timber::get_context(); payload.
+* Upgraded to Twig 1.13.1
 
 = 0.10.2 =
 * added more aliases for easier coding (post.thumbnail instead of post.get_thumbnail, etc.)
