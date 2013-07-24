@@ -9,6 +9,15 @@
     		return (bool)count(array_filter(array_keys($arr), 'is_string'));
 		}
 
+		function ob_function($function, $args = array(null)){
+			ob_start();
+			call_user_func_array($function, $args);
+			//call_user_func($function);
+			$data = ob_get_contents();
+			ob_end_clean();
+			return $data;
+		}
+
 		function is_url($url){
 			$url = strtolower($url);
 			if (strstr('://', $url)){
