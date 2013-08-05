@@ -32,6 +32,14 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 == Changelog ==
 
+= 0.10.4 =
+* Lots of code cleanup thanks to [Jakub](http://github.com/hsz)
+* Added new function for bloginfo
+* You can now hook into timber_context to filter the $context object
+* Added Timber::get_terms to retrive lists of your blog's terms
+* Added better support for translation
+* Added filter for executing a function, ie {{'my_theme_function'|filter}}
+
 = 0.10.3 =
 * Corrected error with sidebar retrieval
 * language_attributes are now avaiable as part of Timber::get_context(); payload.
