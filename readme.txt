@@ -32,6 +32,13 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 == Changelog ==
 
+= 0.10.6 =
+* more normalization of comments
+* Lots of cleanup of starter theme
+
+= 0.10.5 =
+* added theme URI to universal context
+
 = 0.10.4 =
 * Lots of code cleanup thanks to [Jakub](http://github.com/hsz)
 * Added new function for bloginfo
