@@ -1,5 +1,5 @@
 <div style="text-align:center">
-<a href="http://jarednova.github.com/timber"><img src="https://github.com/jarednova/timber/blob/master/images/logo/timber-badge-large.jpg?raw=true" style="display:block; margin:auto;"/></a>
+<a href="http://jarednova.github.com/timber"><img src="https://github.com/jarednova/timber/blob/master/admin/images/logo/timber-badge-large.jpg?raw=true" style="display:block; margin:auto;"/></a>
 <div>
 By Jared Novack (<a href="http://twitter.com/jarednova">@JaredNova</a>) and <a href="http://upstatement.com">Upstatement</a> (<a href="http://twitter.com/upstatement">@Upstatement</a>)</div>  
 </div>
@@ -28,7 +28,7 @@ Once Timber is installed and activated in your plugin directory, it gives any Wo
 
 ### Looking for docs?
 * [Timber Documentation](https://github.com/jarednova/timber/wiki/)
-* [Twig Reference](http://twig.sensiolabs.org/documentation)
+* [Twig Reference](http://twig.sensiolabs.org/doc/templates.html)
 * **[Video Tutorials](https://github.com/jarednova/timber/wiki/Video-Tutorials)**
 * [Overview / Getting Started Guide](https://github.com/jarednova/timber/wiki/getting-started)
 
