@@ -11,7 +11,7 @@ class TimberTwig {
 	* @return Twig_Environment
 	*/
 	function add_twig_filters($twig) {
-		$twig->addFilter('resize', new Twig_Filter_Function('wp_resize'));
+		$twig->addFilter('resize', new Twig_Filter_Function(array('WPImageHelper', 'resize')));
 		$twig->addFilter('letterbox', new Twig_Filter_Function('wp_resize_letterbox'));
 		$twig->addFilter('excerpt', new Twig_Filter_Function('twig_make_excerpt'));
 		$twig->addFilter('print_r', new Twig_Filter_Function('twig_print_r'));
@@ -32,14 +32,13 @@ class TimberTwig {
 		$twig->addFilter('sanitize', new Twig_Filter_Function('sanitize_title'));
 		$twig->addFilter('pretags', new Twig_Filter_Function(array(&$this, 'twig_pretags')));
 		$twig->addFilter('wp_body_class', new Twig_Filter_Function('twig_body_class'));
-		$twig->addFilter('wp_title', new Twig_Filter_Function('twig_wp_title'));
 		$twig->addFilter('time_ago', new Twig_Filter_Function('twig_time_ago'));
 
 		$twig->addFunction('bloginfo', new Twig_SimpleFunction('bloginfo', function($show = '', $filter = 'raw'){
-		  return get_bloginfo($show, $filter);
+			return get_bloginfo($show, $filter);
 		}));
 		$twig->addFunction('__', new Twig_SimpleFunction('__', function($text, $domain = 'default'){
-		  return __($text, $domain);
+			return __($text, $domain);
 		}));
 
 		$twig = apply_filters('get_twig', $twig);
@@ -82,23 +81,6 @@ class TimberTwig {
 		return false;
 	}
 
-	function twig_choose_template($filenames, $dirs) {
-		if (is_array($filenames)) {
-		  /* its an array so we have to figure out which one the dev wants */
-		  foreach ($filenames as $filename) {
-			if (self::template_exists($filename, $dirs)) {
-			  return $filename;
-			}
-		  }
-		  return false;
-		} else {
-		  /* its a single, but we still need to figure out if it exists, default to index.html */
-		  // if (!twig_template_exists($filenames, $dirs)){
-		  // 	$filenames = 'index.html';
-		  // }
-		}
-		return $filenames;
-	}
 }
 
 function twig_shortcodes($text) {
@@ -112,30 +94,6 @@ function twig_get_class($this) {
 
 function twig_get_type($this) {
 	return gettype($this);
-}
-
-function wp_resize_external($src, $w, $h) {
-	$upload = wp_upload_dir();
-	$dir = $upload['path'];
-	$file = parse_url($src);
-	$path_parts = pathinfo($file['path']);
-	$basename = $path_parts['filename'];
-	$newbase = $basename . '-r-' . $w . 'x' . $h;
-	$ext = $path_parts['extension'];
-
-	$new_root_path = $dir . '/' . $newbase . '.' . $ext;
-
-	$new_path = str_replace($_SERVER['DOCUMENT_ROOT'], '', $new_root_path);
-	if (strpos($new_path, '/') != 0) {
-		$new_path = '/' . $new_path;
-	}
-	$ret = array('new_root_path' => $new_root_path, 'old_root_path' => $dir . '/' . $basename . '.' . $ext, 'new_path' => $new_path);
-
-	if (file_exists($new_root_path)) {
-		return $ret;
-	}
-	$image = WPHelper::sideload_image($src);
-	return $ret;
 }
 
 function hexrgb($hexstr) {
@@ -160,99 +118,43 @@ function wp_resize_letterbox($src, $w, $h, $color = '#000000') {
 	imagefill($bg, 0, 0, $white);
 
 	$image = wp_get_image_editor($old_file);
-  if (!is_wp_error($image)) {
-	$current_size = $image->get_size();
-	$ow = $current_size['width'];
-	$oh = $current_size['height'];
-	$new_aspect = $w / $h;
-	$old_aspect = $ow / $oh;
-	if ($new_aspect > $old_aspect) {
-	  //taller than goal
-	  $h_scale = $h / $oh;
-	  $owt = $ow * $h_scale;
-	  $y = 0;
-	  $x = $w / 2 - $owt / 2;
-	  $oht = $h;
-	  $image->crop(0, 0, $ow, $oh, $owt, $oht);
-	} else {
-	  $w_scale = $w / $ow;
-	  $oht = $oh * $w_scale;
-	  $x = 0;
-	  $y = $h / 2 - $oht / 2;
-	  $owt = $w;
-	  $image->crop(0, 0, $ow, $oh, $owt, $oht);
+	if (!is_wp_error($image)) {
+		$current_size = $image->get_size();
+		$ow = $current_size['width'];
+		$oh = $current_size['height'];
+		$new_aspect = $w / $h;
+		$old_aspect = $ow / $oh;
+		if ($new_aspect > $old_aspect) {
+			//taller than goal
+			$h_scale = $h / $oh;
+			$owt = $ow * $h_scale;
+			$y = 0;
+			$x = $w / 2 - $owt / 2;
+			$oht = $h;
+			$image->crop(0, 0, $ow, $oh, $owt, $oht);
+		} else {
+			$w_scale = $w / $ow;
+			$oht = $oh * $w_scale;
+			$x = 0;
+			$y = $h / 2 - $oht / 2;
+			$owt = $w;
+			$image->crop(0, 0, $ow, $oh, $owt, $oht);
+		}
+		$image->save($new_file);
+		$func = 'imagecreatefromjpeg';
+		$ext = pathinfo($new_file, PATHINFO_EXTENSION);
+		if ($ext == 'gif') {
+			$func = 'imagecreatefromgif';
+		} else if ($ext == 'png') {
+			$func = 'imagecreatefrompng';
+		}
+		$image = $func($new_file);
+		imagecopy($bg, $image, $x, $y, 0, 0, $owt, $oht);
+		$new_file = str_replace('-lb-', '-lbox-', $new_file);
+		imagejpeg($bg, $new_file);
+		return WPHelper::get_rel_path($new_file);
 	}
-	$image->save($new_file);
-	$func = 'imagecreatefromjpeg';
-	$ext = pathinfo($new_file, PATHINFO_EXTENSION);
-	if ($ext == 'gif') {
-	  $func = 'imagecreatefromgif';
-	} else if ($ext == 'png') {
-	  $func = 'imagecreatefrompng';
-	}
-	$image = $func($new_file);
-	imagecopy($bg, $image, $x, $y, 0, 0, $owt, $oht);
-	$new_file = str_replace('-lb-', '-lbox-', $new_file);
-	imagejpeg($bg, $new_file);
-	return WPHelper::get_rel_path($new_file);
-  }
-  return null;
-}
-
-function wp_resize($src, $w, $h = 0) {
-  $root = $_SERVER['DOCUMENT_ROOT'];
-  if (strstr($src, 'http')) {
-	//Its a URL so we need to fetch it
-	$external = wp_resize_external($src, $w, $h);
-	$old_root_path = $external['old_root_path'];
-	$new_root_path = $external['new_root_path'];
-	$new_path = $external['new_path'];
-  } else {
-	//oh good, its in the uploads folder!
-	$path_parts = pathinfo($src);
-	$basename = $path_parts['filename'];
-	$ext = $path_parts['extension'];
-	$dir = $path_parts['dirname'];
-	$newbase = $basename . '-r-' . $w . 'x' . $h;
-	$new_path = $dir . '/' . $newbase . '.' . $ext;
-	$new_root_path = $root . $new_path;
-	$old_root_path = $root . $src;
-
-	$old_root_path = str_replace('//', '/', $old_root_path);
-	$new_root_path = str_replace('//', '/', $new_root_path);
-
-	if (file_exists($new_root_path)) {
-	  return $new_path;
-	}
-  }
-  $image = wp_get_image_editor($old_root_path);
-  if (!is_wp_error($image)) {
-	$current_size = $image->get_size();
-	$ow = $current_size['width'];
-	$oh = $current_size['height'];
-	if ($h) {
-	  $new_aspect = $w / $h;
-	  $old_aspect = $ow / $oh;
-
-	  if ($new_aspect > $old_aspect) {
-		//cropping a vertical photo horitzonally
-		$oht = $ow / $new_aspect;
-		$oy = ($oh - $oht) / 6;
-		$image->crop(0, $oy, $ow, $oht, $w, $h);
-	  } else {
-		$owt = $oh * $new_aspect;
-		$ox = $ow / 2 - $owt / 2;
-		$image->crop($ox, 0, $owt, $oh, $w, $h);
-	  }
-	} else {
-	  $image->resize($w, $w);
-	}
-	// $image->
-	$image->save($new_root_path);
-	return $new_path;
-  } else {
-	return $src;
-  }
+	return null;
 }
 
 function twig_time_ago($from, $to = null) {
@@ -284,10 +186,6 @@ function twig_time_ago($from, $to = null) {
 	$output .= " " . $suffix;
 	$output = substr($output, strlen(", "));
 	return $output;
-}
-
-function twig_wp_title() {
-	return wp_title('|', false, 'right');
 }
 
 function twig_body_class($body_classes) {

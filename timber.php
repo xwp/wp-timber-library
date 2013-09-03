@@ -3,7 +3,7 @@
 Plugin Name: Timber
 Description: The WordPress Timber Library allows you to write themes using the power Twig templates
 Author: Jared Novack + Upstatement
-Version: 0.11.0
+Version: 0.12.0
 Author URI: http://timber.upstatement.com/
 */
 
@@ -391,22 +391,25 @@ class Timber {
     /*  Pagination
     ================================ */
 
-    public function get_pagination(){
+    public static function get_pagination($prefs = array()){
         global $wp_query;
         global $paged;
-        $data = array();
-        $data['pages'] = ceil($wp_query->found_posts / $wp_query->query_vars['posts_per_page']);
-        $paged = 1;
-        if (isset($wp_query->query_vars['paged'])) {
-            $paged = $wp_query->query_vars['paged'];
+        $args['total'] = ceil($wp_query->found_posts / $wp_query->query_vars['posts_per_page']);
+        if (strlen(trim(get_option('permalink_structure')))){
+            $args['format'] = 'page/%#%';
         }
-        $data['base'] = get_pagenum_link(0);
-        $data['paged'] = $paged;
-        if ($paged < $data['pages']) {
-            $data['next'] = array('link' => next_posts(0, false), 'path' => next_posts(0, false));
-        }
-        if ($paged > 1) {
-            $data['prev'] = array('link' => previous_posts(false), 'path' => previous_posts(false));
+        $args['type'] = 'array';
+
+        $args['current'] = max( 1, get_query_var('paged') );
+        $args['mid_size'] = max(9 - $args['current'], 3);
+        $args['base'] = get_pagenum_link(0).'%_%';
+        $args['prev_next'] = false;
+        $args = array_merge($args, $prefs);
+        $data['pages'] = WPHelper::paginate_links($args);
+        $data['next'] = array('link' => next_posts($args['total'], false));
+        $data['prev'] = array('link' => previous_posts(false));
+        if ($paged < 2){
+            $data['prev'] = '';
         }
         return $data;
     }
