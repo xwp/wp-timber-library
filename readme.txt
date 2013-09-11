@@ -2,7 +2,7 @@
 Contributors: jarednova
 Tags: template engine, templates, twig
 Requires at least: 3.5
-Stable tag: 0.12.0
+Stable tag: 0.12.2
 Tested up to: 3.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -36,6 +36,13 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 
 == Changelog ==
+
+= 0.12.2 =
+* TimberMenus now contain metadata 'bout the menu (thanks @bryanaka)
+* Fixed issue with Windows servers (thanks @kzykhys)
+* Resizing external images now incl. the full URL to avoid conflicts
+* Fixed pagination oddity
+* Some code cleanup stuff.
 
 = 0.12.1 =
 * A few fixes that catch issues with absolute vs. relative URLs in resize
