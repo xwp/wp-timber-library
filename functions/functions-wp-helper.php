@@ -2,6 +2,14 @@
 
 class WPHelper {
 
+	public static function init_transient($slug, $callback, $transient_time = 1800){
+		if (false===($data = get_transient($slug))){
+			$data = $callback();
+			set_transient($slug, $data, $transient_time);
+		}
+		return $data;
+	}
+
 	public static function is_array_assoc($arr) {
 		if (!is_array($arr)) {
 			return false;

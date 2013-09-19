@@ -5,6 +5,7 @@ class TimberPost extends TimberCore {
 	var $ImageClass = 'TimberImage';
 	var $PostClass = 'TimberPost';
 	var $_can_edit;
+	var $_get_terms;
 
 	public static $representation = 'post';
 
@@ -152,7 +153,18 @@ class TimberPost extends TimberCore {
 			if ($last != '.' && $trimmed) {
 				$text .= ' &hellip; ';
 			}
+			if (!$strip){
+				$last_p_tag = strrpos($text, '</p>');
+				$text = substr($text, 0, $last_p_tag);
+				if ($last != '.' && $trimmed) {
+					$text .= ' &hellip; ';
+				}
+			}
+
 			$text .= ' <a href="' . $this->get_permalink() . '" class="read-more">' . $readmore . '</a>';
+			if (!$strip){
+				$text .= '</p>';
+			}
 		}
 		return $text;
 	}
@@ -191,7 +203,11 @@ class TimberPost extends TimberCore {
 	}
 
 	function get_permalink() {
-		return get_permalink($this->ID);
+		if (isset($this->permalink)){
+			return $this->permalink;
+		}
+		$this->permalink = get_permalink($this->ID);
+		return $this->permalink;
 	}
 
 	function get_link() {
@@ -310,8 +326,15 @@ class TimberPost extends TimberCore {
 	*/
 
 	function get_terms($tax = '', $merge = true, $TermClass = 'TimberTerm') {
+		if (is_string($tax)){
+			if (isset($this->_get_terms) && isset($this->_get_terms[$tax])){
+				return $this->_get_terms[$tax];
+			}
+		}
 		if (!strlen($tax) || $tax == 'all' || $tax == 'any') {
 			$taxs = get_object_taxonomies($this->post_type);
+		} else if (is_array($tax)) {
+			$taxs = $tax;
 		} else {
 			$taxs = array($tax);
 		}
@@ -326,12 +349,16 @@ class TimberPost extends TimberCore {
 			foreach ($terms as &$term) {
 				$term = new $TermClass($term->term_id);
 			}
-			if ($merge) {
+			if ($merge && is_array($terms)) {
 				$ret = array_merge($ret, $terms);
 			} else if (count($terms)) {
 				$ret[$tax] = $terms;
 			}
 		}
+		if (!isset($this->_get_terms)){
+			$this->_get_terms = array();
+		}
+		$this->_get_terms[$tax] = $ret;
 		return $ret;
 	}
 
