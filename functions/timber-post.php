@@ -39,17 +39,6 @@ class TimberPost extends TimberCore {
 		$this->import_info($pid);
 	}
 
-	public function __isset($name){
-		if (method_exists($this, $name)){
-			return false;
-		}
-		return true;
-	}
-
-	function __get($field){
-		return $this->get_field($field);
-	}
-
 	/**
 	*  Get the URL that will edit the current post/object
 	*/
@@ -185,37 +174,20 @@ class TimberPost extends TimberCore {
    * @param integer $pid a post ID number
    * @nodoc
    */
-
-  	function get_custom_via_acf(){
-  		if (function_exists('get_fields')){
-  			$customs = get_fields($this->ID);
-  			return $customs;
-  		}
-  	}
-
-  	function get_custom_via_wp(){
-  		$customs = get_post_custom($this->ID);
+	function import_custom($pid) {
+		$customs = get_post_custom($pid);
 		if (!is_array($customs)){
 			return;
 		}
-		$ret = new stdClass();
 		foreach ($customs as $key => $value) {
 			$v = $value[0];
-			$ret->$key = $v;
+			$this->$key = $v;
 			if (is_serialized($v)) {
 				if (gettype(unserialize($v)) == 'array') {
-					$ret->$key = unserialize($v);
+					$this->$key = unserialize($v);
 				}
 			}
 		}
-		return $ret;
-  	}
-
-	function get_custom($pid) {
-		// if (function_exists('get_fields')){
-		// 	return $this->get_custom_via_acf();
-		// }
-		return $this->get_custom_via_wp();
 	}
 
 	/**
@@ -251,8 +223,6 @@ class TimberPost extends TimberCore {
 	function import_info($pid) {
 		$post_info = $this->get_info($pid);
 		$this->import($post_info);
-		$post_custom = $this->get_custom($pid);
-		$this->import($post_custom);
 	}
 
 	function get_parent() {
@@ -282,7 +252,7 @@ class TimberPost extends TimberCore {
 		}
 		$post->slug = $post->post_name;
 		$post->display_date = date(get_option('date_format'), strtotime($post->post_date));
-		
+		$this->import_custom($post->ID);
 		$post->status = $post->post_status;
 		if (!isset($wp_rewrite)) {
 			return $post;
@@ -454,17 +424,9 @@ class TimberPost extends TimberCore {
 		}
 	}
 
-	//Deprecated
-	function import_custom(){
-		trigger_error('TimberPost::import_custom has been Deprecated, please dont call it any more');
-	}
-
 	//This is for integration with Elliot Condon's wonderful ACF
 	function get_field($field_name) {
-		if (function_exists('get_field')){
-			return get_field($field_name, $this->ID);
-		}
-		return get_post_meta($this->ID, $field, true);
+		return $this->get_field($field_name, $this->ID);
 	}
 
 	function import_field($field_name) {

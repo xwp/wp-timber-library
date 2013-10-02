@@ -10,32 +10,6 @@ class WPHelper {
 		return $data;
 	}
 
-	public static function start_timer(){
-		$time = microtime();
-		$time = explode(' ', $time);
-		$time = $time[1] + $time[0];
-		return $time;
-	}
-
-	public static function end_timer($start){
-		$time = microtime();
-		$time = explode(' ', $time);
-		$time = $time[1] + $time[0];
-		$finish = $time;
-		$total_time = round(($finish - $start), 4);
-		echo 'Page generated in '.$total_time.' seconds.';
-	}
-
-	public static function is_repeater($key, $customs){
-		$search = $key.'_0_';
-		foreach($customs as $key=>$value){
-			if($search == substr($key,0,strlen($search))){
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public static function is_array_assoc($arr) {
 		if (!is_array($arr)) {
 			return false;

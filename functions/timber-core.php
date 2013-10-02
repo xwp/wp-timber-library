@@ -8,9 +8,7 @@ class TimberCore {
 		}
 		if (is_array($info)) {
 			foreach ($info as $key => $value) {
-				if (strlen($key)){
-					$this->$key = $value;
-				}
+				$this->$key = $value;
 			}
 		}
 	}
