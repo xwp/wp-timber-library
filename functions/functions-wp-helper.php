@@ -2,12 +2,38 @@
 
 class WPHelper {
 
-	public static function init_transient($slug, $callback, $transient_time = 1800){
+	public static function transient($slug, $callback, $transient_time = 1800){
 		if (false===($data = get_transient($slug))){
 			$data = $callback();
 			set_transient($slug, $data, $transient_time);
 		}
 		return $data;
+	}
+
+	public static function start_timer(){
+		$time = microtime();
+		$time = explode(' ', $time);
+		$time = $time[1] + $time[0];
+		return $time;
+	}
+
+	public static function end_timer($start){
+		$time = microtime();
+		$time = explode(' ', $time);
+		$time = $time[1] + $time[0];
+		$finish = $time;
+		$total_time = round(($finish - $start), 4);
+		echo 'Page generated in '.$total_time.' seconds.';
+	}
+
+	public static function is_repeater($key, $customs){
+		$search = $key.'_0_';
+		foreach($customs as $key=>$value){
+			if($search == substr($key,0,strlen($search))){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static function is_array_assoc($arr) {
@@ -258,6 +284,12 @@ class WPHelper {
 			return $result->post_id;
 		}
 		return 0;
+	}
+
+	public static function get_term_id_by_term_taxonomy_id($ttid){
+		global $wpdb;
+		$query = "SELECT term_id FROM $wpdb->term_taxonomy WHERE term_taxonomy_id = '$ttid'";
+		return $wpdb->get_var($query);
 	}
 
 	/* this $args thing is a fucking mess, fix at some point: 

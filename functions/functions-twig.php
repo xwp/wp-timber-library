@@ -26,7 +26,6 @@ class TimberTwig {
 
 		/* other filters */
 		$twig->addFilter('excerpt', new Twig_Filter_Function('twig_make_excerpt'));
-		$twig->addFilter('function', new Twig_Filter_Function(array(&$this, 'exec_function')));
 		$twig->addFilter('path', new Twig_Filter_Function('twig_get_path'));
 		$twig->addFilter('pretags', new Twig_Filter_Function(array(&$this, 'twig_pretags')));
 		$twig->addFilter('sanitize', new Twig_Filter_Function('sanitize_title'));
@@ -36,8 +35,38 @@ class TimberTwig {
 		$twig->addFilter('twitterfy', new Twig_Filter_Function(array('WPHelper', 'twitterify')));
 		$twig->addFilter('wp_body_class', new Twig_Filter_Function('twig_body_class'));
 		$twig->addFilter('wpautop', new Twig_Filter_Function('wpautop'));
-		
 
+		$twig->addFilter('TimberPost', new Twig_Filter_Function(function($pid){
+			if (!is_array($pid)){
+				return new TimberPost($pid);
+			}
+			$pids = $pid;
+			foreach($pids as &$pid){
+				$pid = new TimberPost($pid);
+			}
+			return $pids;
+		}));
+
+		$twig->addFunction(new Twig_SimpleFunction('TimberImage', function($pid){
+			return new TimberImage($pid);
+			//call_user_func_array('TimberImage', func_get_args());
+		}));
+
+        /* actions and filters and functions */
+        $twig->addFunction(new Twig_SimpleFunction('action', function(){
+            call_user_func_array('do_action', func_get_args());
+        }));
+        $twig->addFilter( new Twig_SimpleFilter('apply_filters', function(){
+            $args = func_get_args();
+            $tag = current(array_splice($args, 1, 1));
+
+            return apply_filters_ref_array($tag, $args);
+        }));
+        $twig->addFilter('function', new Twig_Filter_Function(array(&$this, 'exec_function')));
+        $twig->addFunction(new Twig_SimpleFunction('function', array(&$this, 'exec_function')));
+        $twig->addFunction(new Twig_SimpleFunction('fn', array(&$this, 'exec_function')));
+
+        /* bloginfo and translate */
 		$twig->addFunction('bloginfo', new Twig_SimpleFunction('bloginfo', function($show = '', $filter = 'raw'){
 			return get_bloginfo($show, $filter);
 		}));
