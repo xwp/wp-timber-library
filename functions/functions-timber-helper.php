@@ -1,6 +1,6 @@
 <?php
 
-class WPHelper {
+class TimberHelper {
 
 	public static function transient($slug, $callback, $transient_time = 1800){
 		if (false===($data = get_transient($slug))){
@@ -8,6 +8,22 @@ class WPHelper {
 			set_transient($slug, $data, $transient_time);
 		}
 		return $data;
+	}
+
+	public static function start_timer(){
+		$time = microtime();
+		$time = explode(' ', $time);
+		$time = $time[1] + $time[0];
+		return $time;
+	}
+
+	public static function stop_timer($start){
+		$time = microtime();
+		$time = explode(' ', $time);
+		$time = $time[1] + $time[0];
+		$finish = $time;
+		$total_time = round(($finish - $start), 4);
+		return 'Page generated in '.$total_time.' seconds.';
 	}
 
 	public static function is_array_assoc($arr) {
@@ -31,6 +47,10 @@ class WPHelper {
 		ob_end_clean();
 		return $data;
 	}
+
+    public static function function_wrapper($function_name, $defaults = array(), $return_output_buffer = false) {
+        return new TimberFunctionWrapper($function_name, $defaults, $return_output_buffer);
+    }
 
 	public static function is_url($url) {
 		if (!is_string($url)){
@@ -266,7 +286,7 @@ class WPHelper {
 		return $wpdb->get_var($query);
 	}
 
-	/* this $args thing is a fucking mess, fix at some point: 
+	/* this $args thing is a fucking mess, fix at some point:
 
 	http://codex.wordpress.org/Function_Reference/comment_form */
 
@@ -446,5 +466,8 @@ class WPHelper {
 		endswitch;
 		return $r;
 	}
+}
 
+class WPHelper extends TimberHelper {
+	//for backwards compat, will remove eventually
 }
