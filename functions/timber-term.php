@@ -3,7 +3,9 @@
 class TimberTerm extends TimberCore {
 
 	var $taxonomy;
-	var $PostClass;
+	var $PostClass = 'TimberPost';
+
+	public static $representation = 'term';
 
 	function __construct($tid = null) {
 		if ($tid === null) {

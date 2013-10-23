@@ -164,7 +164,9 @@ class TimberPost extends TimberCore {
 				}
 			}
 
-			$text .= ' <a href="' . $this->get_permalink() . '" class="read-more">' . $readmore . '</a>';
+			if($readmore) {
+				$text .= ' <a href="' . $this->get_permalink() . '" class="read-more">' . $readmore . '</a>';
+			}
 			if (!$strip){
 				$text .= '</p>';
 			}
@@ -221,10 +223,21 @@ class TimberPost extends TimberCore {
 	}
 
 	function get_link() {
-		if (isset($this->path)) {
-			return $this->path;
+		return $this->get_permalink();
+	}
+
+	function get_next() {
+		if (!isset($this->next)){
+			$this->next = new $this->PostClass(get_adjacent_post( false, "", true ));
 		}
-		return null;
+		return $this->next;
+	}
+
+	function get_prev() {
+		if (!isset($this->prev)){
+			$this->prev = new $this->PostClass(get_adjacent_post( false, "", false ));
+		}
+		return $this->prev;
 	}
 
 	function get_parent() {
@@ -464,13 +477,21 @@ class TimberPost extends TimberCore {
 		return $this->get_permalink();
 	}
 
-	function path(){
+	function next() {
+		return $this->get_next();
+	}
+
+	function path() {
 		$path = TimberHelper::get_rel_url($this->get_permalink());
 		return TimberHelper::preslashit($path);
 	}
 
 	function permalink() {
 		return $this->get_permalink();
+	}
+
+	function prev() {
+		return $this->get_prev();
 	}
 
 	function terms($tax = '') {
@@ -491,7 +512,7 @@ class TimberPost extends TimberCore {
 
 	//Deprecated
 	function get_path() {
-		return $this->get_link();
+		return TimberHelper::get_rel_url($this->get_link());
 	}
 
 }
