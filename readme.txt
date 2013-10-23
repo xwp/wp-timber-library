@@ -38,6 +38,14 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 == Changelog ==
 
+= 0.15.0 =
+* Cacheing!!!
+* Cacheing!!
+* Cacheing!!!! Timber::render('mytemplate.twig', $data, $expires_time_in_secs);
+* Added post.get_next / post.get_prev for TimberPosts
+* Fixed a thing to make get_preview easier when you want to omit the 'Read More' link
+* Read the [Full Release Notes](https://github.com/jarednova/timber/releases/tag/0.15.0)
+
 = 0.14.1 =
 * Added hooks to play nicely with Timber Debug Bar
 * Fixed-up Timber Term aliases, link, path, etc.

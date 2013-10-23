@@ -4,7 +4,7 @@ Plugin Name: Timber
 Plugin URI: http://timber.upstatement.com
 Description: The WordPress Timber Library allows you to write themes using the power Twig templates
 Author: Jared Novack + Upstatement
-Version: 0.14.1
+Version: 0.15.0
 Author URI: http://upstatement.com/
 */
 
@@ -290,7 +290,10 @@ class Timber {
         $data['wp_footer'] = TimberHelper::function_wrapper('wp_footer');
         $data['body_class'] = implode(' ', get_body_class());
         if (function_exists('wp_nav_menu')) {
-            $data['wp_nav_menu'] = wp_nav_menu(array('container_class' => 'menu-header', 'echo' => false, 'menu_class' => 'nav-menu'));
+            $locations = get_nav_menu_locations();
+            if (count($locations)){
+                $data['wp_nav_menu'] = wp_nav_menu(array('container_class' => 'menu-header', 'echo' => false, 'menu_class' => 'nav-menu'));
+            }
         }
         $data['theme_dir'] = str_replace(ABSPATH, '', get_stylesheet_directory());
         $data['language_attributes'] = TimberHelper::function_wrapper('language_attributes');
@@ -300,19 +303,33 @@ class Timber {
         return $data;
     }
 
-    public static function render($filenames, $data = array(), $echo = true) {
+    public static function compile($filenames, $data = array(), $expires = false, $cache_mode = TimberLoader::CACHE_USE_DEFAULT, $via_render = false) {
         $caller = self::get_calling_script_dir();
         $loader = new TimberLoader($caller);
         $file = $loader->choose_template($filenames);
         $output = '';
         if (strlen($file)) {
-            $file = apply_filters('timber_render_file', $file);
-            $data = apply_filters('timber_render_data', $data);
-            $output = $loader->render($file, $data);
+            if ($via_render){
+                $file = apply_filters('timber_render_file', $file);
+                $data = apply_filters('timber_render_data', $data);
+            } else {
+                $file = apply_filters('timber_compile_file', $file);
+                $data = apply_filters('timber_compile_data', $data);
+            }
+            $output = $loader->render($file, $data, $expires, $cache_mode);
         }
-        if ($echo) {
-            echo $output;
+        return $output;
+    }
+
+    public static function render($filenames, $data = array(), $expires = false, $cache_mode = TimberLoader::CACHE_USE_DEFAULT) {
+        if ($expires === true){
+            //if this is reading as true; the user probably is using the old $echo param
+            //so we should move all vars up by a spot
+            $expires = $cache_mode;
+            $cache_mode = TimberLoader::CACHE_USE_DEFAULT;
         }
+        $output = self::compile($filenames, $data, $expires, $cache_mode, true);
+        echo $output;
         return $output;
     }
 
@@ -374,7 +391,7 @@ class Timber {
         }
     }
 
-    public static function add_route($route, $callback) {
+    public static function add_route($route, $callback, $args = array()) {
         global $timber;
         if (!isset($timber->router)) {
             require_once('functions/router/Router.php');
@@ -382,7 +399,7 @@ class Timber {
             $timber->router = new Router();
             $timber->router->setBasePath('/');
         }
-        $timber->router->map($route, $callback);
+        $timber->router->map($route, $callback, $args);
     }
 
     public static function cancel_query(){
