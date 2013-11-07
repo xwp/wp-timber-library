@@ -115,7 +115,7 @@ class TimberPost extends TimberCore {
 	* @nodoc
 	*/
 
-	function get_post_id_by_name($post_name) {
+	public static function get_post_id_by_name($post_name) {
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_name = %s LIMIT 1", $post_name);
 		$result = $wpdb->get_row($query);
@@ -196,6 +196,7 @@ class TimberPost extends TimberCore {
 			$v = $value[0];
 			$customs[$key] = maybe_unserialize($v);
 		}
+		$customs = apply_filters('post_get_meta', $customs, $pid);
 		return $customs;
 	}
 
@@ -231,6 +232,10 @@ class TimberPost extends TimberCore {
 			$this->next = new $this->PostClass(get_adjacent_post( false, "", false ));
 		}
 		return $this->next;
+	}
+
+	public function get_path() {
+		return TimberHelper::get_rel_url($this->get_link());
 	}
 
 	function get_prev() {
@@ -357,13 +362,19 @@ class TimberPost extends TimberCore {
 				$tax = 'category';
 			}
 			$terms = wp_get_post_terms($this->ID, $tax);
-			foreach ($terms as &$term) {
-				$term = new $TermClass($term->term_id);
-			}
-			if ($merge && is_array($terms)) {
-				$ret = array_merge($ret, $terms);
-			} else if (count($terms)) {
-				$ret[$tax] = $terms;
+			if (!is_array($terms) && is_object($terms) && get_class($terms) == 'WP_Error'){
+				//something is very wrong
+				TimberHelper::error_log('You have an error retrieving terms on a post in timber-post.php:367');
+				TimberHelper::error_log($terms);
+			} else {
+				foreach ($terms as &$term) {
+					$term = new $TermClass($term->term_id);
+				}
+				if ($merge && is_array($terms)) {
+					$ret = array_merge($ret, $terms);
+				} else if (count($terms)) {
+					$ret[$tax] = $terms;
+				}
 			}
 		}
 		if (!isset($this->_get_terms)){
@@ -420,11 +431,11 @@ class TimberPost extends TimberCore {
 		return apply_filters('the_content', ($content));
 	}
 
-	function get_post_type() {
+	public function get_post_type() {
 		return get_post_type_object($this->post_type);
 	}
 
-	function get_comment_count() {
+	public function get_comment_count() {
 		if (isset($this->ID)) {
 			return get_comments_number($this->ID);
 		} else {
@@ -432,12 +443,13 @@ class TimberPost extends TimberCore {
 		}
 	}
 
-	//This is for integration with Elliot Condon's wonderful ACF
-	function get_field($field_name) {
-		if (function_exists('get_field')){
-			return get_field($field_name, $this->ID);
+	public function get_field($field_name) {
+		$value = null;
+		$value = apply_filters('timber_post_get_meta_field', $value, $this->ID, $field_name);
+		if ($value === null){
+			$value = get_post_meta($this->ID, $field, true);
 		}
-		return get_post_meta($this->ID, $field, true);
+		return $value;
 	}
 
 	function import_field($field_name) {
@@ -445,78 +457,76 @@ class TimberPost extends TimberCore {
 	}
 
 	//Aliases
-	function author() {
+	public function author() {
 		return $this->get_author();
 	}
 
-	function categories() {
+	public function categories() {
 		return $this->get_terms('category');
 	}
 
-	function category() {
+	public function category() {
 		return $this->get_category();
 	}
 
-	function children() {
+	public function children() {
 		return $this->get_children();
 	}
 
-	function comments(){
+	public function comments(){
 		return $this->get_comments();
 	}
 
-	function content() {
+	public function content() {
 		return $this->get_content();
 	}
 
-	function display_date(){
+	public function display_date(){
 		return date(get_option('date_format'), strtotime($this->post_date));
 	}
 
-	function edit_link(){
+	public function edit_link(){
 		return $this->get_edit_url();
 	}
 
-	function link() {
+	public function link() {
 		return $this->get_permalink();
 	}
 
-	function next() {
+	public function meta($field_name){
+		return $this->get_field($field_name);
+	}
+
+	public function next() {
 		return $this->get_next();
 	}
 
-	function path() {
-		$path = TimberHelper::get_rel_url($this->get_permalink());
-		return TimberHelper::preslashit($path);
+	public function path() {
+		return $this->get_path();
 	}
 
-	function permalink() {
+	public function permalink() {
 		return $this->get_permalink();
 	}
 
-	function prev() {
+	public function prev() {
 		return $this->get_prev();
 	}
 
-	function terms($tax = '') {
+	public function terms($tax = '') {
 		return $this->get_terms($tax);
 	}
 
-	function tags() {
+	public function tags() {
 		return $this->get_tags();
 	}
 
-	function thumbnail() {
+	public function thumbnail() {
 		return $this->get_thumbnail();
 	}
 
-	function title() {
+	public function title() {
 		return $this->get_title();
-	}
-
-	//Deprecated
-	function get_path() {
-		return TimberHelper::get_rel_url($this->get_link());
 	}
 
 }

@@ -36,6 +36,9 @@ class TimberTwig {
 		$twig->addFilter('twitterfy', new Twig_Filter_Function(array('TimberHelper', 'twitterify')));
 		$twig->addFilter('wp_body_class', new Twig_Filter_Function('twig_body_class'));
 		$twig->addFilter('wpautop', new Twig_Filter_Function('wpautop'));
+		$twig->addFilter('relative', new Twig_Filter_Function(function($link){
+			return TimberHelper::get_rel_url($link, true);
+		}));
 
         /* actions and filters */
         $twig->addFunction(new Twig_SimpleFunction('action', function(){
@@ -51,32 +54,32 @@ class TimberTwig {
         $twig->addFunction(new Twig_SimpleFunction('fn', array(&$this, 'exec_function')));
 
         /* TimberObjects */
-        $twig->addFunction(new Twig_SimpleFunction('TimberPost', function($pid){
-        	if (is_array($pid)){
+        $twig->addFunction(new Twig_SimpleFunction('TimberPost', function($pid, $PostClass = 'TimberPost'){
+        	if (is_array($pid) && !TimberHelper::is_array_assoc($pid)){
         		foreach($pid as &$p){
-        			$p = new TimberPost($p);
+        			$p = new $PostClass($p);
         		}
         		return $pid;
         	}
-        	return new TimberPost($pid);
+        	return new $PostClass($pid);
         }));
-        $twig->addFunction(new Twig_SimpleFunction('TimberImage', function($pid){
-        	if (is_array($pid)){
+        $twig->addFunction(new Twig_SimpleFunction('TimberImage', function($pid, $ImageClass = 'TimberImage'){
+        	if (is_array($pid) && !TimberHelper::is_array_assoc($pid)){
         		foreach($pid as &$p){
-        			$p = new TimberImage($p);
+        			$p = new $ImageClass($p);
         		}
         		return $pid;
         	}
-        	return new TimberImage($pid);
+        	return new $ImageClass($pid);
         }));
-        $twig->addFunction(new Twig_SimpleFunction('TimberTerm', function($pid){
-        	if (is_array($pid)){
+        $twig->addFunction(new Twig_SimpleFunction('TimberTerm', function($pid, $TermClass = 'TimberTerm'){
+        	if (is_array($pid) && !TimberHelper::is_array_assoc($pid)){
         		foreach($pid as &$p){
-        			$p = new TimberTerm($p);
+        			$p = new $TermClass($p);
         		}
         		return $pid;
         	}
-        	return new TimberTerm($pid);
+        	return new $TermClass($pid);
         }));
 
         /* bloginfo and translate */
@@ -151,8 +154,8 @@ function wp_resize_letterbox($src, $w, $h, $color = '#000000') {
 	//$old_file = TimberHelper::get_full_path($src);
 	$urlinfo = parse_url($src);
 	$old_file = ABSPATH.$urlinfo['path'];
-	$new_file = TimberHelper::get_letterbox_file_path($urlinfo['path'], $w, $h);
-	$new_file_rel = TimberHelper::get_letterbox_file_rel($urlinfo['path'], $w, $h);
+	$new_file = TimberImageHelper::get_letterbox_file_path($urlinfo['path'], $w, $h);
+	$new_file_rel = TimberImageHelper::get_letterbox_file_rel($urlinfo['path'], $w, $h);
 	$new_file_boxed = str_replace('-lb-', '-lbox-', $new_file);
 	if (file_exists($new_file_boxed)) {
 		$new_file_rel = str_replace('-lb-', '-lbox-', $new_file_rel);

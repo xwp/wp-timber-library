@@ -82,43 +82,23 @@ class TimberHelper {
 		return $old_root_path;
 	}
 
-	public static function get_rel_url($url){
-		if (!strstr($url, $_SERVER['HTTP_HOST'])){
+	public static function get_rel_url($url, $force = false){
+		if (!strstr($url, $_SERVER['HTTP_HOST']) && !$force){
 			return $url;
 		}
-		$url = str_replace('http://', '', $url);
-		$url = str_replace('https://', '', $url);
-		return str_replace($_SERVER['HTTP_HOST'], '', $url);
+		$url_info = parse_url($url);
+		$link = $url_info['path'];
+		if (isset($url_info['query']) && strlen($url_info['query'])){
+			$link .= '?'.$url_info['query'];
+		}
+		return $link;
 	}
 
 	public static function get_rel_path($src) {
 		return str_replace(ABSPATH, '', $src);
 	}
 
-	public static function get_letterbox_file_rel($src, $w, $h) {
-		$path_parts = pathinfo($src);
-		$basename = $path_parts['filename'];
-		$ext = $path_parts['extension'];
-		$dir = $path_parts['dirname'];
-		$newbase = $basename . '-lb-' . $w . 'x' . $h;
-		$new_path = $dir . '/' . $newbase . '.' . $ext;
-		return $new_path;
-  	}
-
-	public static function get_letterbox_file_path($src, $w, $h) {
-		$path_parts = pathinfo($src);
-		$basename = $path_parts['filename'];
-		$ext = $path_parts['extension'];
-		$dir = $path_parts['dirname'];
-		$newbase = $basename . '-lb-' . $w . 'x' . $h;
-		$new_path = $dir . '/' . $newbase . '.' . $ext;
-		$new_root_path = ABSPATH . $new_path;
-		$new_root_path = str_replace('//', '/', $new_root_path);
-		return $new_root_path;
-	}
-
 	public static function download_url($url, $timeout = 300) {
-		//WARNING: The file is not automatically deleted, The script must unlink() the file.
 		if (!$url) {
 			return new WP_Error('http_no_url', __('Invalid URL Provided.'));
 		}
@@ -134,12 +114,10 @@ class TimberHelper {
 			unlink($tmpfname);
 			return $response;
 		}
-
 		if (200 != wp_remote_retrieve_response_code($response)) {
 			unlink($tmpfname);
 			return new WP_Error('http_404', trim(wp_remote_retrieve_response_message($response)));
 		}
-
 		return $tmpfname;
 	}
 
@@ -200,7 +178,10 @@ class TimberHelper {
 	}
 
 	public static function get_current_url() {
-		$pageURL = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
+		$pageURL = "http://";
+		if (isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on"){
+			$pageURL = "https://";;
+		}
 		if ($_SERVER["SERVER_PORT"] != "80") {
 			$pageURL .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
 		} else {
@@ -360,7 +341,7 @@ class TimberHelper {
 		$size = 'full';
 		$src = wp_get_attachment_image_src($iid, $size);
 		$src = $src[0];
-		return self::get_path($src);
+		return self::get_rel_path($src);
 	}
 
 	public static function array_truncate($array, $len) {
