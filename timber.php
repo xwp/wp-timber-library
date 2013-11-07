@@ -4,7 +4,7 @@ Plugin Name: Timber
 Plugin URI: http://timber.upstatement.com
 Description: The WordPress Timber Library allows you to write themes using the power Twig templates
 Author: Jared Novack + Upstatement
-Version: 0.15.2
+Version: 0.15.3
 Author URI: http://upstatement.com/
 */
 
@@ -12,8 +12,8 @@ global $wp_version;
 global $timber;
 
 require_once(__DIR__ . '/functions/functions-twig.php');
-require_once(__DIR__ . '/functions/functions-timber-helper.php');
-require_once(__DIR__ . '/functions/functions-timber-image-helper.php');
+require_once(__DIR__ . '/functions/timber-helper.php');
+require_once(__DIR__ . '/functions/timber-image-helper.php');
 
 require_once(__DIR__ . '/functions/timber-core.php');
 require_once(__DIR__ . '/functions/timber-post.php');
@@ -28,6 +28,7 @@ require_once(__DIR__ . '/functions/timber-site.php');
 
 require_once(__DIR__ . '/functions/timber-loader.php');
 require_once(__DIR__ . '/functions/timber-function-wrapper.php');
+require_once(__DIR__ . '/functions/integrations/acf-timber.php');
 
 require_once(__DIR__ . '/admin/timber-admin.php');
 
@@ -131,7 +132,7 @@ class Timber {
         return $query;
     }
 
-    public function get_pids($query = null) {
+    public static function get_pids($query = null) {
         $posts = get_posts($query);
         $pids = array();
         foreach ($posts as $post) {
@@ -446,9 +447,12 @@ class Timber {
     }
 
 
-    public static function load_template($template, $query = false, $force_header = 0) {
+    public static function load_template($template, $query = false, $force_header = 0, $tparams = false) {
         $template = locate_template($template);
-
+        if ($tparams){
+            global $params;
+            $params = $tparams;
+        }
         if ($force_header) {
             add_filter('status_header', function($status_header, $header, $text, $protocol) use ($force_header) {
                 $text = get_status_header_desc($force_header);
