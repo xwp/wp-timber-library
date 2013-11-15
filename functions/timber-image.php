@@ -5,6 +5,7 @@ class TimberImage extends TimberCore {
 	var $_can_edit;
 	var $abs_url;
 	var $PostClass = 'TimberPost';
+	var $object_type = 'image';
 
 	public static $representation = 'image';
 
@@ -29,7 +30,8 @@ class TimberImage extends TimberCore {
 		}
 
         if ($size && is_string($size) && isset($this->sizes[$size])) {
-            return reset(image_downsize($this->ID, $size));
+        	$image = image_downsize($this->ID, $size);
+          return reset($image);
         }
 
         if (!isset($this->file) && isset($this->_wp_attached_file)) {

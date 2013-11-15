@@ -6,10 +6,12 @@ class TimberPost extends TimberCore {
 	var $PostClass = 'TimberPost';
 	var $_can_edit;
 	var $_get_terms;
+	var $object_type = 'post';
 
 	var $_custom_imported = false;
 
 	public static $representation = 'post';
+
 
 	/**
 	*  If you send the contructor nothing it will try to figure out the current post id based on being inside The_Loop
@@ -188,6 +190,7 @@ class TimberPost extends TimberCore {
   	}
 
 	function get_post_custom($pid) {
+		$customs = apply_filters('timber_post_get_meta_pre', array(), $pid, $this);
 		$customs = get_post_custom($pid);
 		if (!is_array($customs) || empty($customs)){
 			return;
@@ -196,7 +199,7 @@ class TimberPost extends TimberCore {
 			$v = $value[0];
 			$customs[$key] = maybe_unserialize($v);
 		}
-		$customs = apply_filters('post_get_meta', $customs, $pid);
+		$customs = apply_filters('timber_post_get_meta', $customs, $pid, $this);
 		return $customs;
 	}
 
@@ -365,7 +368,9 @@ class TimberPost extends TimberCore {
 			if (!is_array($terms) && is_object($terms) && get_class($terms) == 'WP_Error'){
 				//something is very wrong
 				TimberHelper::error_log('You have an error retrieving terms on a post in timber-post.php:367');
+				TimberHelper::error_log('tax = '.$tax);
 				TimberHelper::error_log($terms);
+
 			} else {
 				foreach ($terms as &$term) {
 					$term = new $TermClass($term->term_id);
@@ -444,16 +449,20 @@ class TimberPost extends TimberCore {
 	}
 
 	public function get_field($field_name) {
-		$value = null;
-		$value = apply_filters('timber_post_get_meta_field', $value, $this->ID, $field_name);
+		$value = apply_filters('timber_post_get_meta_field_pre', null, $this->ID, $field_name, $this);
 		if ($value === null){
-			$value = get_post_meta($this->ID, $field, true);
+			$value = get_post_meta($this->ID, $field_name, true);
 		}
+		$value = apply_filters('timber_post_get_meta_field', $value, $this->ID, $field_name, $this);
 		return $value;
 	}
 
 	function import_field($field_name) {
 		$this->$field_name = $this->get_field($field_name);
+	}
+
+	function get_format(){
+		return get_post_format($this->ID);
 	}
 
 	//Aliases
@@ -482,11 +491,15 @@ class TimberPost extends TimberCore {
 	}
 
 	public function display_date(){
-		return date(get_option('date_format'), strtotime($this->post_date));
+		return date_i18n(get_option('date_format') , strtotime($this->post_date));
 	}
 
 	public function edit_link(){
 		return $this->get_edit_url();
+	}
+
+	public function format(){
+		return $this->get_format();
 	}
 
 	public function link() {

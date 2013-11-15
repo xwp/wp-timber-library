@@ -3,6 +3,7 @@
 class TimberComment extends TimberCore {
 
     var $PostClass = 'TimberPost';
+    var $object_type = 'comment';
 
     public static $representation = 'comment';
 
@@ -75,18 +76,24 @@ class TimberComment extends TimberCore {
             $comment_id = $this->ID;
         }
         //Could not find a WP function to fetch all comment meta data, so I made one.
-        global $wpdb;
-        $query = $wpdb->prepare("SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $comment_id);
-        $metas = $wpdb->get_results($query);
-        $customs = array();
-        foreach($metas as $meta_row){
-            $customs[$meta_row->meta_key] = maybe_unserialize($meta_row->meta_value);
+        $comment_metas = apply_filters('timber_comment_get_meta_pre', array(), $this->ID);
+        $comment_metas = get_comment_meta($this->ID);
+        foreach($comment_metas as &$cm){
+            if (is_array($cm) && count($cm) == 1){
+                $cm = $cm[0];
+            }
         }
-        return $customs;
+        $comment_metas = apply_filters('timber_comment_get_meta', $comment_metas, $this->ID);
+        return $comment_metas;
     }
 
     private function get_meta_field($field_name){
-
+        $value = apply_filters('timber_comment_get_meta_field_pre', null, $this->ID, $field_name, $this);
+        if ($value === null){
+            $value = get_comment_meta($this->ID, $field_name, true);
+        }
+        $value = apply_filters('timber_comment_get_meta_field', $value, $this->ID, $field_name, $this);
+        return $value;
     }
 
     /* AVATAR Stuff
