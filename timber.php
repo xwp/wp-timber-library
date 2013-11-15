@@ -4,7 +4,7 @@ Plugin Name: Timber
 Plugin URI: http://timber.upstatement.com
 Description: The WordPress Timber Library allows you to write themes using the power Twig templates
 Author: Jared Novack + Upstatement
-Version: 0.15.3
+Version: 0.15.5
 Author URI: http://upstatement.com/
 */
 
@@ -23,8 +23,12 @@ require_once(__DIR__ . '/functions/timber-term.php');
 require_once(__DIR__ . '/functions/timber-term-getter.php');
 require_once(__DIR__ . '/functions/timber-image.php');
 require_once(__DIR__ . '/functions/timber-menu.php');
-require_once(__DIR__ . '/functions/timber-theme.php');
+
+//Other 2nd-class citizens
+require_once(__DIR__ . '/functions/timber-archives.php');
 require_once(__DIR__ . '/functions/timber-site.php');
+require_once(__DIR__ . '/functions/timber-theme.php');
+
 
 require_once(__DIR__ . '/functions/timber-loader.php');
 require_once(__DIR__ . '/functions/timber-function-wrapper.php');
@@ -456,8 +460,19 @@ class Timber {
         if ($force_header) {
             add_filter('status_header', function($status_header, $header, $text, $protocol) use ($force_header) {
                 $text = get_status_header_desc($force_header);
-                return "$protocol $force_header $text";
+                $header_string = "$protocol $force_header $text";
+                return $header_string;
             }, 10, 4 );
+            add_filter('body_class', function($classes) use ($force_header) {
+                if (isset($classes) && is_array($classes) && $force_header != 404){
+                    foreach($classes as &$class){
+                        if (strstr($class, '404')){
+                            $class = '';
+                        }
+                    }
+                }
+                return $classes;
+            });
         }
 
         if ($query) {
