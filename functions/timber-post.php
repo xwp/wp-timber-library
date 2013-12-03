@@ -375,7 +375,7 @@ class TimberPost extends TimberCore {
 
 			} else {
 				foreach ($terms as &$term) {
-					$term = new $TermClass($term->term_id);
+					$term = new $TermClass($term->term_id, $tax);
 				}
 				if ($merge && is_array($terms)) {
 					$ret = array_merge($ret, $terms);
@@ -454,7 +454,7 @@ class TimberPost extends TimberCore {
 		$value = apply_filters('timber_post_get_meta_field_pre', null, $this->ID, $field_name, $this);
 		if ($value === null){
 			$value = get_post_meta($this->ID, $field_name);
-			if (is_array($value) && count($value == 1)){
+			if (is_array($value) && count($value) == 1){
 				$value = $value[0];
 			}
 		}
@@ -546,5 +546,10 @@ class TimberPost extends TimberCore {
 	public function title() {
 		return $this->get_title();
 	}
+
+	function post_class($class='') {
+		return implode(' ', get_post_class($class,$this->ID));
+	}
+
 
 }
