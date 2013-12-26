@@ -4,7 +4,7 @@ Plugin Name: Timber
 Plugin URI: http://timber.upstatement.com
 Description: The WordPress Timber Library allows you to write themes using the power Twig templates
 Author: Jared Novack + Upstatement
-Version: 0.16.2
+Version: 0.16.3
 Author URI: http://upstatement.com/
 */
 
@@ -343,6 +343,7 @@ class Timber {
         $data['stylesheet_uri'] = get_stylesheet_uri();
         $data['template_uri'] = get_template_directory_uri();
         $data['theme'] = new TimberTheme();
+        $data['site'] = new TimberSite();
         $data = apply_filters('timber_context', $data);
         return $data;
     }
@@ -416,7 +417,8 @@ class Timber {
     ================================ */
 
     public static function get_widgets($widget_id){
-        return TimberHelper::ob_function('dynamic_sidebar', array($widget_id));
+        return TimberHelper::function_wrapper('dynamic_sidebar', array($widget_id));
+        //return TimberHelper::ob_function('dynamic_sidebar', array($widget_id));
     }
 
 
@@ -438,12 +440,16 @@ class Timber {
     public static function add_route($route, $callback, $args = array()) {
         global $timber;
         if (!isset($timber->router)) {
-            require_once('functions/router/Router.php');
-            require_once('functions/router/Route.php');
-            $timber->router = new Router();
-            $timber->router->setBasePath('/');
+            require_once(__DIR__.'/functions/router/Router.php');
+            require_once(__DIR__.'/functions/router/Route.php');
+            if (class_exists('Router')){
+                $timber->router = new Router();
+                $timber->router->setBasePath('/');
+            }
         }
-        $timber->router->map($route, $callback, $args);
+        if (class_exists('Router')){
+            $timber->router->map($route, $callback, $args);
+        }
     }
 
     public static function cancel_query(){
@@ -526,15 +532,19 @@ class Timber {
         $args['current'] = max( 1, get_query_var('paged') );
         $args['mid_size'] = max(9 - $args['current'], 3);
         $args['prev_next'] = false;
-        $args = array_merge($args, $prefs);
+        if (is_int($prefs)){
+            $args['mid_size'] = $prefs - 2;
+        } else {
+            $args = array_merge($args, $prefs);
+        }
         $data['pages'] = TimberHelper::paginate_links($args);
         $next = next_posts($args['total'], false);
         if ($next){
-            $data['next'] = array('link' => $next);
+            $data['next'] = array('link' => $next, 'class' => 'page-numbers next');
         }
         $prev = previous_posts(false);
         if ($prev){
-            $data['prev'] = array('link' => $prev);
+            $data['prev'] = array('link' => $prev, 'class' => 'page-numbers prev');
         }
         if ($paged < 2){
             $data['prev'] = '';
