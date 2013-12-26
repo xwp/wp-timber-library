@@ -3,6 +3,7 @@
 class TimberImage extends TimberCore {
 
 	var $_can_edit;
+	var $_dimensions;
 	var $abs_url;
 	var $PostClass = 'TimberPost';
 	var $object_type = 'image';
@@ -22,6 +23,38 @@ class TimberImage extends TimberCore {
 
 	function get_pathinfo(){
 		return pathinfo($this->file);
+	}
+
+	function get_dimensions($dim = null){
+		if (isset($this->_dimensions)){
+			return $this->get_dimensions_loaded($dim);
+		}
+		list($width, $height) = getimagesize($this->fileloc);
+		$this->_dimensions = array();
+		$this->_dimensions[0] = $width;
+		$this->_dimensions[1] = $height;
+		TimberHelper::error_log($this->_dimensions);
+		return $this->get_dimensions_loaded($dim);
+	}
+
+	function get_dimensions_loaded($dim){
+		if ($dim == null){
+			return $this->_dimensions;
+		}
+		if ($dim == 'w' || $dim == 'width'){
+			return $this->_dimensions[0];
+		}
+		if ($dim == 'h' || $dim == 'height'){
+			return $this->_dimensions[1];
+		}
+	}
+
+	function get_width(){
+		return $this->get_dimensions('width');
+	}
+
+	function get_height(){
+		return $this->get_dimensions('height');
 	}
 
 	function get_src( $size = '' ) {
@@ -44,7 +77,6 @@ class TimberImage extends TimberCore {
         $dir = wp_upload_dir();
         $base = ($dir["baseurl"]);
         return trailingslashit($base) . $this->file;
-
   	}
 
 	function get_path() {
@@ -91,6 +123,14 @@ class TimberImage extends TimberCore {
 			$image_info = get_object_vars($image_info);
 		}
 		$this->import($image_info);
+		$basedir = wp_upload_dir();
+		$basedir = $basedir['basedir'];
+		if (isset($this->file)){
+			$this->file_loc = $basedir . $this->file;
+		} else if (isset($this->_wp_attached_file)){
+			$this->file = reset($this->_wp_attached_file);
+			$this->file_loc = $basedir . $this->file;
+		}
 		if (isset($image_info['id'])) {
 			$this->ID = $image_info['id'];
 		} else if (is_numeric($iid)) {
@@ -113,6 +153,9 @@ class TimberImage extends TimberCore {
 
 	function init_with_url($url) {
 		$this->abs_url = $url;
+		if (TimberHelper::is_local($url)){
+			$this->file = ABSPATH . TimberHelper::get_rel_url($url);
+		}
 	}
 
 	/* deprecated */
@@ -122,7 +165,21 @@ class TimberImage extends TimberCore {
 
 	/* Alias */
 
-	function src($size = '') {
+	public function aspect(){
+		$w = intval($this->width());
+		$h = intval($this->height());
+		return $w/$h;
+	}
+
+	public function height(){
+		return $this->get_height();
+	}
+
+	public function src($size = '') {
 		return $this->get_src($size);
+	}
+
+	public function width(){
+		return $this->get_width();
 	}
 }

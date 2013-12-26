@@ -41,6 +41,8 @@ class TimberPost extends TimberCore {
 		}
 		$post_info = $this->get_info($pid);
 		$this->import($post_info);
+		//cant have a function, so gots to do it this way
+		$this->class = $this->post_class();
 	}
 
 	/**
@@ -48,6 +50,7 @@ class TimberPost extends TimberCore {
 	*/
 	function get_edit_url() {
 		if ($this->can_edit()) {
+			return get_edit_post_link($this->ID);
 			return '/wp-admin/post.php?post=' . $this->ID . '&action=edit';
 		}
 		return false;
@@ -136,7 +139,7 @@ class TimberPost extends TimberCore {
 		$trimmed = false;
 		if (isset($this->post_excerpt) && strlen($this->post_excerpt)) {
 			if ($force) {
-				$text = TimberHelper::trim_words($this->post_excerpt, $len);
+				$text = TimberHelper::trim_words($this->post_excerpt, $len, false);
 				$trimmed = true;
 			} else {
 				$text = $this->post_excerpt;
@@ -233,10 +236,18 @@ class TimberPost extends TimberCore {
 	}
 
 	function get_next() {
-		if (!isset($this->next)){
-			$this->next = new $this->PostClass(get_adjacent_post( false, "", false ));
+		if (!isset($this->_next)){
+			global $post;
+			$this->_next = null;
+			$old_global = $post;
+			$post = $this;
+			$adjacent = get_adjacent_post(false, '', false);
+			if ($adjacent){
+				$this->_next = new $this->PostClass($adjacent);
+			}
+			$post = $old_global;
 		}
-		return $this->next;
+		return $this->_next;
 	}
 
 	public function get_path() {
@@ -244,10 +255,18 @@ class TimberPost extends TimberCore {
 	}
 
 	function get_prev() {
-		if (!isset($this->prev)){
-			$this->prev = new $this->PostClass(get_adjacent_post( false, "", true ));
+		if (!isset($this->_prev)){
+			global $post;
+			$this->_prev = null;
+			$old_global = $post;
+			$post = $this;
+			$adjacent = get_adjacent_post(false, '', true);
+			if ($adjacent){
+				$this->_prev = new $this->PostClass($adjacent);
+			}
+			$post = $old_global;
 		}
-		return $this->prev;
+		return $this->_prev;
 	}
 
 	function get_parent() {
@@ -566,8 +585,10 @@ class TimberPost extends TimberCore {
 		return $this->get_title();
 	}
 
-	function post_class($class='') {
-		return implode(' ', get_post_class($class,$this->ID));
+	public function post_class($class='') {
+		$pid = $this->ID;
+		$class_array = get_post_class($class, $pid);
+		return implode(' ', $class_array);
 	}
 
 

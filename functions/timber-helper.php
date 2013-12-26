@@ -7,8 +7,10 @@ class TimberHelper {
 		if (defined('WP_DISABLE_TRANSIENTS')){
 			$disable_transients = WP_DISABLE_TRANSIENTS;
 		}
+
 		if (false === ($data = get_transient($slug)) || $disable_transients){
 			$cache_lock_slug = $slug.'_lock';
+
 			if (get_transient($cache_lock_slug)){
 				//the server is currently executing the process.
 				//We're just gonna dump these users. Sorry!
@@ -92,6 +94,13 @@ class TimberHelper {
 		$old_root_path = $root . $src;
 		$old_root_path = str_replace('//', '/', $old_root_path);
 		return $old_root_path;
+	}
+
+	public static function is_local($url){
+		if (strstr($url, $_SERVER['HTTP_HOST'])){
+			return true;
+		}
+		return false;
 	}
 
 	public static function get_rel_url($url, $force = false){
@@ -435,7 +444,7 @@ class TimberHelper {
 		for ( $n = 1; $n <= $total; $n++ ) {
 			$n_display = number_format_i18n($n);
 			if ( $n == $current ) {
-				$page_links[] = array('class' => 'page-number current', 'title' => $n_display, 'text' => $n_display);
+				$page_links[] = array('class' => 'page-number page-numbers current', 'title' => $n_display, 'text' => $n_display, 'name' => $n_display);
 				$dots = true;
 			} else {
 				if ( $show_all || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) {
@@ -445,7 +454,7 @@ class TimberHelper {
 						$link = add_query_arg( $add_args, $link );
 					}
 					$link = trailingslashit($link).ltrim($add_fragment, '/');
-					$page_links[] = array('class' => 'page-number', 'link' => esc_url( apply_filters( 'paginate_links', $link ) ), 'title' => $n_display);
+					$page_links[] = array('class' => 'page-number page-numbers', 'link' => esc_url( apply_filters( 'paginate_links', $link ) ), 'title' => $n_display);
 					$dots = true;
 				} elseif ( $dots && !$show_all ) {
 					$page_links[] = array('class' => 'dots', 'title' => __( '&hellip;' ));
