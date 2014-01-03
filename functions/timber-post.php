@@ -163,7 +163,9 @@ class TimberPost extends TimberCore {
 			}
 			if (!$strip){
 				$last_p_tag = strrpos($text, '</p>');
-				$text = substr($text, 0, $last_p_tag);
+				if ($last_p_tag !== false){
+					$text = substr($text, 0, $last_p_tag);
+				}
 				if ($last != '.' && $trimmed) {
 					$text .= ' &hellip; ';
 				}
@@ -248,6 +250,43 @@ class TimberPost extends TimberCore {
 			$post = $old_global;
 		}
 		return $this->_next;
+	}
+
+	public function get_pagination(){
+		global $post, $page, $numpages, $multipage, $more, $pagenow;
+		$old_global_post = $post;
+		$post = $this;
+		$ret = array();
+		if ($multipage){
+			for ( $i = 1; $i <= $numpages; $i++ ) {
+				$link = self::get_wp_link_page($i);
+				$data = array('name' => $i, 'title' => $i, 'text' => $i, 'link' => $link);
+				if ($i == $page){
+					$data['current'] = true;
+				}
+				$ret['pages'][] = $data;
+			}
+			$i = $page - 1;
+			if ( $i ) {
+				$link = self::get_wp_link_page( $i );
+				$ret['prev'] = array('link' => $link);
+			}
+			$i = $page + 1;
+			if ( $i <= $numpages ) {
+				$link = self::get_wp_link_page( $i );
+				$ret['next'] = array('link' => $link);
+			}
+		}
+		return $ret;
+	}
+
+	private static function get_wp_link_page($i){
+		$link = _wp_link_page($i);
+		$link = new SimpleXMLElement($link.'</a>');
+		if (isset($link['href'])){
+			return $link['href'];
+		}
+		return '';
 	}
 
 	public function get_path() {
@@ -525,8 +564,8 @@ class TimberPost extends TimberCore {
 		return $this->get_comments();
 	}
 
-	public function content() {
-		return $this->get_content();
+	public function content($page) {
+		return $this->get_content(0, $page);
 	}
 
 	public function display_date(){
@@ -551,6 +590,10 @@ class TimberPost extends TimberCore {
 
 	public function next() {
 		return $this->get_next();
+	}
+
+	public function pagination(){
+		return $this->get_pagination();
 	}
 
 	public function parent(){
