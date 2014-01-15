@@ -25,6 +25,7 @@ class TimberTwig {
 		$twig->addFilter('print_a', new Twig_Filter_Function('twig_print_a'));
 
 		/* other filters */
+		$twig->addFilter('stripshortcodes', new Twig_Filter_Function('strip_shortcodes'));
 		$twig->addFilter('array', new Twig_Filter_Function(array($this, 'to_array')));
 		$twig->addFilter('excerpt', new Twig_Filter_Function('twig_make_excerpt'));
 		$twig->addFilter('function', new Twig_Filter_Function(array($this, 'exec_function')));
@@ -39,6 +40,10 @@ class TimberTwig {
 		$twig->addFilter('wpautop', new Twig_Filter_Function('wpautop'));
 		$twig->addFilter('relative', new Twig_Filter_Function(function($link){
 			return TimberHelper::get_rel_url($link, true);
+		}));
+
+		$twig->addFilter('truncate', new Twig_Filter_Function(function($text, $len){
+			return TimberHelper::trim_words($text, $len);
 		}));
 
         /* actions and filters */

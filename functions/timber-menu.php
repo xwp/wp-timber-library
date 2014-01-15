@@ -162,25 +162,36 @@ class TimberMenuItem extends TimberCore {
         return false;
     }
 
+    function is_external(){
+        if ($this->type != 'custom'){
+            return false;
+        }
+        return TimberHelper::is_external($this->url);
+    }
+
     /* Aliases */
 
-    function children(){
+    public function children(){
         return $this->get_children();
     }
 
-    function link(){
+    public function external(){
+        return $this->is_external();
+    }
+
+    public function link(){
         return $this->get_link();
     }
 
-    function path(){
+    public function path(){
         return $this->get_path();
     }
 
-    function permalink(){
+    public function permalink(){
         return $this->get_link();
     }
 
-    function get_permalink(){
+    public function get_permalink(){
         return $this->get_link();
     }
 }
