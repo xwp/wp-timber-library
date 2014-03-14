@@ -41,6 +41,9 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 == Changelog ==
 
+= 0.17.1 =
+* Hotfix on timber-admin error
+
 = 0.17.0 =
 * Now you can resize/crop images with positional preferences, thanks @mmikkel. Here are the docs: https://github.com/jarednova/timber/wiki/TimberImage#resize
 * Removed the Timber Starter Guide from the admin, a link to the GitHub wiki suffices.
