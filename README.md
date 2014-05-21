@@ -35,7 +35,17 @@ Once Timber is installed and activated in your plugin directory, it gives any Wo
 * * *
 
 ### Installation
-Just drag the `timber` folder into `wp-content/plugins` -- then activate in your WordPress admin. If you're looking for a 'blank' theme to start developing with, drag the `timber-starter-theme` from the timber directory into your themes directory.
+
+**NEW!** The GitHub version of Timber now requires [Composer](https://getcomposer.org/download/). If you'd prefer one-click installation, you should use the [WordPress.org](http://wordpress.org/plugins/timber-library/) version.
+
+```shell
+cd ~/MYSITE/wp-content/plugins
+git clone git@github.com:jarednova/timber.git
+cd timber
+composer install
+```
+
+Once this is complete, activate Timber your WordPress admin. If you're looking for a 'blank' theme to start developing with, drag the `timber-starter-theme` from the timber directory into your themes directory.
 
 * * *
 
@@ -53,10 +63,15 @@ Timber is great for any WordPress developer who cares about writing good, mainta
 
 #### Related Projects
 * [**Timber Debug Bar**](https://github.com/upstatement/debug-bar-timber) Adds a debug bar panel that will show you want template is in-use and the data sent to your twig file.
-* [**TimberPhoton**](https://github.com/slimndap/TimberPhoton) Plug-in to use JetPack's free Photon image maninpulation and CDN with Timber.
+* [**TimberPhoton**](https://github.com/slimndap/TimberPhoton) Plug-in to use JetPack's free Photon image manipulation and CDN with Timber.
+* [**Timber Sugar**](https://github.com/Upstatement/timber-sugar) A catch-all for goodies to use w Timber.
 * [**Twig**](https://github.com/fabpot/Twig) The template language used by Timber.
 
 #### Should I use it?
-It's GPL-licensed, so please use in personal or commercial work. Just don't re-sell it. While Timber is still in development, it's also in-use on [hundreds of sites](http://jarednova.github.io/timber/#showcase). While much has been stabalized since the first major push back in June 2013, you should expect some breaking changes as development progresses towards a version 1.0.
+It's GPL-licensed, so please use in personal or commercial work. Just don't re-sell it. While Timber is still in development, it's also in-use on [hundreds of sites](http://jarednova.github.io/timber/#showcase). While much has been stabilized since the first major push back in June 2013, you should expect some breaking changes as development progresses towards a version 1.0.
+
+#### Contributing
+Read the [contributor guidelines](https://github.com/jarednova/timber/wiki#contributing) in the wiki.
+
 
 
