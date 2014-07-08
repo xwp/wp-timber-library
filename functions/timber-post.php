@@ -1,7 +1,6 @@
 <?php
 
-class TimberPost extends TimberCore
-{
+class TimberPost extends TimberCore implements TimberCoreInterface {
 
     public $ImageClass = 'TimberImage';
     public $PostClass = 'TimberPost';
@@ -13,16 +12,18 @@ class TimberPost extends TimberCore
     public $_custom_imported = false;
     public $_content;
     public $_get_terms;
-    
+
     public $class;
     public $display_date;
     public $id;
+    public $ID;
     public $post_content;
     public $post_date;
     public $post_parent;
     public $post_title;
     public $post_type;
-   
+    public $slug;
+
     /**
      *  If you send the constructor nothing it will try to figure out the current post id based on being inside The_Loop
      * @param mixed $pid
@@ -426,9 +427,9 @@ class TimberPost extends TimberCore
         if (!isset($post->post_status)) {
             return null;
         }
-        $post->slug = $post->post_name;
-        $post->id = $post->ID;
         $post->status = $post->post_status;
+        $post->id = $post->ID;
+        $post->slug = $post->post_name;
         $customs = $this->get_post_custom($post->ID);
         $post = (object)array_merge((array)$post, (array)$customs);
         return $post;
@@ -693,6 +694,13 @@ class TimberPost extends TimberCore
     }
 
     /**
+     * @return string
+     */
+    function get_paged_content() {
+        global $page;
+        return $this->get_content(0,$page);
+    }
+    /**
      * @return mixed
      */
     public function get_post_type() {
@@ -839,6 +847,13 @@ class TimberPost extends TimberCore
     }
 
     /**
+     * @return string
+     */
+    public function paged_content() {
+        return $this->get_paged_content();
+    }
+
+    /**
      * @param string $date_format
      * @return string
      */
@@ -876,6 +891,13 @@ class TimberPost extends TimberCore
             $field_name = 'meta';
         }
         return $this->get_field($field_name);
+    }
+
+    /**
+     * @return string
+     */
+    public function name(){
+        return $this->title();
     }
 
     /**
